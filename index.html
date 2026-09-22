@@ -254,6 +254,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);color:var(--muted);fo
         <h2>Escolha o serviço e o horário</h2>
         <p>Monte seu pedido aqui e me envie pelo WhatsApp. Eu confirmo se o horário está disponível.</p>
         <ul class="aside-list">
+          <li>Atendo de segunda a sexta das 18h30 às 21h e sábado das 8h às 14h.</li>
           <li>Dá para combinar serviços, como Design + Henna.</li>
           <li>Seu horário só fica reservado depois que eu confirmar.</li>
           <li>Se o horário estiver ocupado, eu sugiro o mais próximo.</li>
@@ -386,7 +387,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);color:var(--muted);fo
         <div><dt>Endereço</dt><dd>Rua São João, 295<br>Arapongas, Indaial – SC</dd></div>
         <div><dt>WhatsApp</dt><dd class="phone"><strong id="fone">(47) 99204-3868</strong><button class="copy" id="copyBtn" type="button">Copiar</button></dd></div>
         <div><dt>Instagram</dt><dd><a href="https://www.instagram.com/beauty_kariany/" target="_blank" rel="noopener">@beauty_kariany</a></dd></div>
-        <div><dt>Atendimento</dt><dd>Com hora marcada</dd></div>
+        <div><dt>Horário de atendimento</dt><dd>Segunda a sexta, 18h30 às 21h<br>Sábado, 8h às 14h<br>Domingo fechado</dd></div>
       </dl>
     </div>
   </section>
@@ -411,14 +412,20 @@ footer{padding-block:28px;border-top:1px solid var(--line);color:var(--muted);fo
 <script>
 (function(){
   var PHONE='5547992043868';
- var WEEK=['18:30','19:00','19:30','20:00'];
+  var WEEK=['18:30','19:00','19:30','20:00'];
   var SAT=['08:00','09:00','10:00','11:00','12:00','13:00'];
   var timeBox=document.getElementById('timeOpts');
-  TIMES.forEach(function(t,i){
-    var l=document.createElement('label');l.className='opt';
-    l.innerHTML='<input type="radio" name="time" id="time-'+i+'" value="'+t+'"><span>'+t+'</span>';
-    timeBox.appendChild(l);
-  });
+  function renderTimes(v){
+    timeBox.innerHTML='';
+    if(!v){timeBox.innerHTML='<p class="note">Escolha o dia para ver os horários.</p>';return;}
+    var p=v.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+    if(dow===0){timeBox.innerHTML='<p class="err">Domingo o estúdio está fechado. Escolha outro dia.</p>';return;}
+    (dow===6?SAT:WEEK).forEach(function(t,i){
+      var l=document.createElement('label');l.className='opt';
+      l.innerHTML='<input type="radio" name="time" id="time-'+i+'" value="'+t+'"><span>'+t+'</span>';
+      timeBox.appendChild(l);
+    });
+  }
   var date=document.getElementById('bkDate'), name=document.getElementById('bkName'), note=document.getElementById('bkNote');
   var prev=document.getElementById('bkPreview'), send=document.getElementById('bkSend'), err=document.getElementById('bkErr');
   var d=new Date(); var iso=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
@@ -441,7 +448,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);color:var(--muted);fo
     return m;
   }
   function missing(s){
-    var f=[]; if(!s.svcs.length)f.push('o serviço'); if(!s.date)f.push('o dia'); if(!s.time)f.push('o horário'); if(!s.name)f.push('seu nome');
+    var f=[]; if(!s.svcs.length)f.push('o serviço'); if(!s.date)f.push('o dia'); else if(new Date(s.date+'T12:00').getDay()===0)f.push('um dia de segunda a sábado'); if(!s.time)f.push('o horário'); if(!s.name)f.push('seu nome');
     return f;
   }
   function update(){
@@ -450,6 +457,8 @@ footer{padding-block:28px;border-top:1px solid var(--line);color:var(--muted);fo
     send.href='https://wa.me/'+PHONE+'?text='+encodeURIComponent(m);
     if(!err.hidden && !missing(s).length) err.hidden=true;
   }
+  date.addEventListener('change',function(){renderTimes(date.value);update();});
+  renderTimes('');
   document.getElementById('bookForm').addEventListener('input',update);
   document.getElementById('bookForm').addEventListener('change',update);
   document.getElementById('bookForm').addEventListener('submit',function(e){e.preventDefault()});
